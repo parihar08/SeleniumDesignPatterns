@@ -5,7 +5,9 @@
     <classes>
       <class name="org.spariharconsultinginc.DesignPatterns.DemoTest">
         <methods>
-          <include name="flightTest" invocation-numbers="0"/>
+          <include name="flightTest" invocation-numbers="0 1"/>
+          <include name="setUp"/>
+          <include name="tearDown"/>
         </methods>
       </class> <!-- org.spariharconsultinginc.DesignPatterns.DemoTest -->
     </classes>

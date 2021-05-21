@@ -1,30 +1,44 @@
 package org.spariharconsultinginc.DesignPatterns;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import pageComponents.MultiCity;
 import pageComponents.OneWay;
 import pageComponents.RoundTrip;
 import pageObjects.TravelHomePage;
 
-public class DemoTest {
+public class DemoTest extends BaseTest{
+	
+	WebDriver driver;
+	TravelHomePage travelHomepage;
 	
 	By sectionElement = By.id("flightSearchContainer");
 	
-	@Test(dataProvider="getData")
+	@BeforeTest
+	public void setUp(){
+		
+		driver = initializeDriver();
+		travelHomepage = new TravelHomePage(driver);		
+	}
+	
+	//@Test(dataProvider="getData")
+	@Test(dataProvider="getDataFromJson")
 	public void flightTest(HashMap<String, String> resDetails) throws InterruptedException{
 		
-		WebDriverManager.chromedriver().setup();
-		WebDriver driver = new ChromeDriver();
+//		WebDriverManager.chromedriver().setup();
+//		WebDriver driver = new ChromeDriver();
 		
-		TravelHomePage travelHomepage = new TravelHomePage(driver);
+//		TravelHomePage travelHomepage = new TravelHomePage(driver);
 		travelHomepage.goTo();
 		Thread.sleep(2000);
 		
@@ -88,11 +102,18 @@ public class DemoTest {
 		Thread.sleep(3000);
 		
 		//6 Parameterization to run same test with different data set(reservationDetails)
-		//using TestNG Data Providers
+		//a. using TestNG Data Providers and providing data manually
+		//b. using TestNG Data Providers and reading data from JSON file as well 
 		
-		travelHomepage.setBookingStrategy("roundTrip");
+		travelHomepage.setBookingStrategy("multiCity");
 		travelHomepage.checkAvailability(resDetails);
 		
+		//7 Drive data from external source(JSON file)
+		
+	}
+	
+	@AfterTest
+	public void tearDown(){
 		driver.quit();	
 	}
 	
@@ -103,16 +124,40 @@ public class DemoTest {
 		resDetails.put("destination", "HYD");
 		resDetails.put("origin2", "DEL");
 		
-//		HashMap<String, String> resDetails1 = new HashMap<String, String>();
-//		resDetails1.put("origin", "MAA");
-//		resDetails1.put("destination", "HYD");
-//		resDetails1.put("origin2", "DEL");
+		HashMap<String, String> resDetails1 = new HashMap<String, String>();
+		resDetails1.put("origin", "MAA");
+		resDetails1.put("destination", "HYD");
+		resDetails1.put("origin2", "DEL");
+		
+		//If we have multiple datasets(Hashmaps), we can pass them as a list
+		List<HashMap<String,String>> l = new ArrayList<HashMap<String, String>>();
+		l.add(resDetails);
+		l.add(resDetails1);
 		
 		return new Object[][]{
 			{resDetails}
 			//if we want to have 2 different datasets, we have to return different datasets like
 			//{resDetails},{resDetails1}
+			//or we can pass as list of HashMaps as below
+			//{l.get(0)},{l.get(1)}
 		};
+	}
+	
+	//Creating new data provider to read data from JSON file
+	@DataProvider
+	public Object[][] getDataFromJson() throws IOException{
+		
+		List<HashMap<String, String>> list = getJsonData(System.getProperty("user.dir")+
+				"/src/test/java/org/spariharconsultinginc/DesignPatterns"
+				+ "/DataLoads/ReservationDetails.json");
+		return new Object[][]{
+		
+		//For every index in the JSON file, it will create a HashMap. and all HashMaps will be
+		//put into a list and we can access content of JSON file using list index
+		{list.get(0)},{list.get(1)}
+		//Runs the test case twice with both sets of data if 2 indexes are present in list(json file)
+		};
+		
 	}
 	
 
